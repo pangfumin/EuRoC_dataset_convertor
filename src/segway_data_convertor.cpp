@@ -59,18 +59,19 @@
 #include <opencv2/opencv.hpp>
 #pragma GCC diagnostic pop
 
-#include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
 
 #include <sensor_msgs/Image.h>
-#include <sensor_msgs/image_encodings.h>
-#include <sensor_msgs/Imu.h>
-#include <geometry_msgs/TransformStamped.h>
-
+#include <sensor_msgs/PointCloud2.h>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include "okvis/file-system-tools.h"
+#include <pcl/io/pcd_io.h>
+
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
 
 using namespace boost::filesystem;
 using std::vector;
@@ -99,6 +100,23 @@ string colouredString(string str, string colour, string option)
   return option + colour + str + RESET;
 }
 
+
+int writePointCloudToBinFile(pcl::PointCloud<pcl::PointXYZI>& pointcloud, const std::string bin_filename) {
+    // load point cloud
+    std::ofstream output(bin_filename, std::ios::out | std::ios::binary);
+    if(!output.is_open()){
+        std::cerr << "Could not read file: " << bin_filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    for (auto i : pointcloud) {
+        output.write((char *) &i.x, 3*sizeof(float));
+        output.write((char *) &i.intensity, sizeof(float));
+    }
+
+    output.close();
+    return pointcloud.size();
+}
 
 
 int main(int argc, char **argv)
@@ -201,16 +219,36 @@ int main(int argc, char **argv)
   int velodyne_points_cnt = 0;
   int camera_left = 0;
   int camera_right = 0;
-//      /stereo/cameraL
-//     /stereo/cameraR
-//     /velodyne_points
+
   for (auto bagIt : view) {
     string topic = bagIt.getTopic();
-//    std::cout << topic << std::endl;
 
     if (topic == "/velodyne_points" ) {
       // todo: save
-//      bagIt.get
+        sensor_msgs::PointCloud2::ConstPtr pointcloud =
+                bagIt.instantiate<sensor_msgs::PointCloud2>();
+        pcl::PointCloud<pcl::PointXYZI>::Ptr lidar(new pcl::PointCloud<pcl::PointXYZI>);
+        pcl::PCLPointCloud2 pcl_pc2;
+        pcl_conversions::toPCL(*pointcloud,pcl_pc2);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::PointCloud<pcl::PointXYZI>::Ptr out_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+        pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+        for (auto pt: *temp_cloud) {
+            pcl::PointXYZI p;
+            p.x = pt.x;
+            p.y = pt.y;
+            p.z = pt.z;
+            out_cloud->push_back(p);
+        }
+
+        std::string lidar_name = std::string(6 - std::to_string(camera_left).length(), '0') + std::to_string(velodyne_points_cnt) + ".bin";
+        std::stringstream ss;
+        ss <<velodyne_folder << "/" << lidar_name;
+
+        velodyne_ofs << bagIt.getTime().toNSec() << "," << "velodyne/"<< lidar_name << std::endl;
+
+        writePointCloudToBinFile(*out_cloud, ss.str());
+
       velodyne_points_cnt ++;
     }
 
@@ -221,13 +259,9 @@ int main(int argc, char **argv)
       cv_bridge::CvImagePtr cv_ptr;
       cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
       cv::Mat image_cv = cv_ptr->image;
-      cv::imshow("image left", image_cv);
-      cv::waitKey(20);
+//      cv::imshow("image left", image_cv);
+//      cv::waitKey(20);
 
-
-
-
-//        std::string image_name = std::string( 6, '0').append( std::to_string(camera_left)) + ".png";
         std::string image_name = std::string(6 - std::to_string(camera_left).length(), '0') + std::to_string(camera_left) + ".png";
         std::stringstream ss;
         ss <<image_left_folder << "/" << image_name;
@@ -245,11 +279,11 @@ int main(int argc, char **argv)
       cv_bridge::CvImagePtr cv_ptr;
       cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
       cv::Mat image_cv = cv_ptr->image;
-      cv::imshow("image right", image_cv);
-      cv::waitKey(20);
+//      cv::imshow("image right", image_cv);
+//      cv::waitKey(20);
 
 
-        std::string image_name = std::string(6 - std::to_string(camera_left).length(), '0') + std::to_string(camera_left) + ".png";
+        std::string image_name = std::string(6 - std::to_string(camera_right).length(), '0') + std::to_string(camera_right) + ".png";
         std::stringstream ss;
         ss <<image_right_folder << "/" << image_name;
         cv::imwrite(ss.str(), image_cv);
@@ -259,12 +293,11 @@ int main(int argc, char **argv)
       camera_right ++;
     }
 
+    std::cout<< "saving: " << camera_right + camera_left + velodyne_points_cnt << "/"  << view_size << std::endl;
 
   }
 
-std::cout << velodyne_points_cnt << std::endl;
-std::cout << camera_left << std::endl;
-std::cout << camera_right << std::endl;
+
   ros::shutdown();
 
 }

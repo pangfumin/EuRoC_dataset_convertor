@@ -33,7 +33,8 @@ message(STATUS "Building with ${CMAKE_BUILD_TYPE}")
 file(MAKE_DIRECTORY ${CATKIN_DEVEL_PREFIX}/include)
 
 FIND_PACKAGE(Boost COMPONENTS filesystem system REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS}) 
+find_package(PCL REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -48,6 +49,6 @@ add_executable(dataset_convertor src/dataset_convertor.cpp)
 target_link_libraries(dataset_convertor ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} )
 
 add_executable(segway_data_convertor src/segway_data_convertor.cpp src/file-system-tools.cpp)
-target_link_libraries(segway_data_convertor ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} )
+target_link_libraries(segway_data_convertor ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 
