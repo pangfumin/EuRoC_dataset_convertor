@@ -51,6 +51,9 @@ add_definitions(-fPIC -march=native -Wextra -Winit-self -Woverloaded-virtual
 add_executable(segway_data_convertor src/segway_data_convertor.cpp src/file-system-tools.cpp)
 target_link_libraries(segway_data_convertor ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+add_executable(segway_data_convertor_sync src/segway_data_convertor_sync.cpp src/file-system-tools.cpp)
+target_link_libraries(segway_data_convertor_sync ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 
 add_executable(generate_kalibr_rosbag src/generate_kalibr_rosbag.cpp src/file-system-tools.cpp)
 target_link_libraries(generate_kalibr_rosbag ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
