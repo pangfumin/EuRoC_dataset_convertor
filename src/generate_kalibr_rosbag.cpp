@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle nh;
 
-  std::string dataset_path = "/home/pang/cui_stereo_calib";
+  std::string dataset_path = "/media/pang/Plus/segway_outdoor/cui_stereo_calib";
     std::string generated_rosbag_file = dataset_path + "/kalibr.bag";
 
     auto data_bag_ptr =  std::make_shared<rosbag::Bag>(generated_rosbag_file,
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
         cv::Mat image1 = cv::imread(right_image_filenames.at(i), CV_LOAD_IMAGE_GRAYSCALE);
         cv::imshow("left", image0);
         cv::imshow("right", image1);
-        cv::waitKey(1000);
+        cv::waitKey(100);
 
         cv_bridge::CvImage out_msg;
         std_msgs::Header header;
