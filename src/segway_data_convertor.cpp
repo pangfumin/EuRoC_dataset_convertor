@@ -242,7 +242,7 @@ int main(int argc, char **argv)
         std::stringstream ss;
         ss <<velodyne_folder << "/" << lidar_name;
 
-        velodyne_ofs << std::to_string(bagIt.getTime().toNSec()) << "," << "velodyne/"<< lidar_name << std::endl;
+        velodyne_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "velodyne/"<< lidar_name << std::endl;
 
         writePointCloudToBinFile(*out_cloud, ss.str());
 
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
         ss <<image_left_folder << "/" << image_name;
         cv::imwrite(ss.str(), image_cv);
 
-      left_image_ofs << std::to_string(bagIt.getTime().toNSec()) << "," << "image0/"<< image_name << std::endl;
+      left_image_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "image0/"<< image_name << std::endl;
       camera_left ++;
     }
 
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
         ss <<image_right_folder << "/" << image_name;
         cv::imwrite(ss.str(), image_cv);
 
-        right_image_ofs << std::to_string(bagIt.getTime().toNSec()) << "," << "image1/"<< image_name << std::endl;
+        right_image_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "image1/"<< image_name << std::endl;
 
       camera_right ++;
     }

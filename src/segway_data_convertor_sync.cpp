@@ -93,13 +93,13 @@ void callback(const ImageConstPtr& image0, const ImageConstPtr& image1, const Po
         writePointCloudToBinFile(*out_cloud, ss_lidar.str());
 
 
-        sensor_syn_ofs  << "image0_syn/"<< image_name << ","
-                        << std::to_string(image0->header.stamp.toNSec()) << ","
-                << "image1_syn/"<< image_name << ","
-                << std::to_string(image1->header.stamp.toNSec()) << ","
-                << "velodyne_syn/"<< lidar_name << ","
-                << std::to_string(lidar->header.stamp.toNSec()) << ","
-                << dt0 << "," << dt1
+        sensor_syn_ofs  << "image0_syn/"<< image_name << " "
+                        << std::to_string(image0->header.stamp.toNSec()) << " "
+                << "image1_syn/"<< image_name << " "
+                << std::to_string(image1->header.stamp.toNSec()) << " "
+                << "velodyne_syn/"<< lidar_name << " "
+                << std::to_string(lidar->header.stamp.toNSec()) << " "
+                << dt0 << " " << dt1
                 <<  std::endl;
 
         std::cout << image_name << " "
