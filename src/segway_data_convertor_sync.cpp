@@ -22,7 +22,7 @@ std::string save_folder = "/home/pang/data/dataset/segway_outdoor/2019-06-05-16-
 auto image0_syn_folder = save_folder+ "/image0_syn";
 auto image1_syn_folder = save_folder+ "/image1_syn";
 auto lidar_syn_folder = save_folder+ "/velodyne_syn";
-auto sensor_syn_file = save_folder+ "/snesor_syn.txt";
+auto sensor_syn_file = save_folder+ "/sensor_syn.txt";
 
 std::ofstream sensor_syn_ofs;
 int sensor_cnt = 0;

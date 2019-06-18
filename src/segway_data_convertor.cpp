@@ -170,17 +170,14 @@ int main(int argc, char **argv)
         common::createPath(image_right_folder);
     }
 
-    std::string velodyne_list_file = save_folder+ "/velodyne.csv";
-    std::string left_image_list_file = save_folder+ "/image0.csv";
-    std::string right_image_list_file = save_folder+ "/image1.csv";
+    std::string velodyne_list_file = save_folder+ "/velodyne.txt";
+    std::string left_image_list_file = save_folder+ "/image0.txt";
+    std::string right_image_list_file = save_folder+ "/image1.txt";
 
     std::ofstream velodyne_ofs(velodyne_list_file);
     std::ofstream left_image_ofs(left_image_list_file);
     std::ofstream right_image_ofs(right_image_list_file);
 
-    velodyne_ofs << "#timestamp[ns], filename" << std::endl;
-    left_image_ofs << "#timestamp[ns], filename" << std::endl;
-    right_image_ofs << "#timestamp[ns], filename" << std::endl;
 
 
 
@@ -245,7 +242,7 @@ int main(int argc, char **argv)
         std::stringstream ss;
         ss <<velodyne_folder << "/" << lidar_name;
 
-        velodyne_ofs << bagIt.getTime().toNSec() << "," << "velodyne/"<< lidar_name << std::endl;
+        velodyne_ofs << std::to_string(bagIt.getTime().toNSec()) << "," << "velodyne/"<< lidar_name << std::endl;
 
         writePointCloudToBinFile(*out_cloud, ss.str());
 
@@ -267,7 +264,7 @@ int main(int argc, char **argv)
         ss <<image_left_folder << "/" << image_name;
         cv::imwrite(ss.str(), image_cv);
 
-      left_image_ofs << bagIt.getTime().toNSec() << "," << "image0/"<< image_name << std::endl;
+      left_image_ofs << std::to_string(bagIt.getTime().toNSec()) << "," << "image0/"<< image_name << std::endl;
       camera_left ++;
     }
 
@@ -288,7 +285,7 @@ int main(int argc, char **argv)
         ss <<image_right_folder << "/" << image_name;
         cv::imwrite(ss.str(), image_cv);
 
-        right_image_ofs << bagIt.getTime().toNSec() << "," << "image1/"<< image_name << std::endl;
+        right_image_ofs << std::to_string(bagIt.getTime().toNSec()) << "," << "image1/"<< image_name << std::endl;
 
       camera_right ++;
     }
@@ -296,6 +293,12 @@ int main(int argc, char **argv)
     std::cout<< "saving: " << camera_right + camera_left + velodyne_points_cnt << "/"  << view_size << std::endl;
 
   }
+
+    velodyne_ofs.close();
+    left_image_ofs.close();
+    right_image_ofs.close();
+
+
 
 
   ros::shutdown();
