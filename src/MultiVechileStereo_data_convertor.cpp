@@ -259,6 +259,7 @@ int main(int argc, char **argv)
 //      cv::imshow("image left", image_cv);
 //      cv::waitKey(20);
 
+
         std::string image_name = std::string(6 - std::to_string(camera_left).length(), '0') + std::to_string(camera_left) + ".png";
         std::stringstream ss;
         ss <<image_left_folder << "/" << image_name;
@@ -278,6 +279,7 @@ int main(int argc, char **argv)
       cv::Mat image_cv = cv_ptr->image;
 //      cv::imshow("image right", image_cv);
 //      cv::waitKey(20);
+
 
 
         std::string image_name = std::string(6 - std::to_string(camera_right).length(), '0') + std::to_string(camera_right) + ".png";

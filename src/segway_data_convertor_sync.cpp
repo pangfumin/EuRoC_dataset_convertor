@@ -53,7 +53,7 @@ void callback(const ImageConstPtr& image0, const ImageConstPtr& image1, const Po
 //    std::cout << dt0 << " " << dt1 << std::endl;
 
     // in 5 ms, save it
-    if (abs(dt0) < 5 * 1e6 && abs(dt1) < 30 * 1e6) {
+    if (abs(dt0) < 5 * 1e6) {
 
         cv_bridge::CvImagePtr left_cv_ptr;
         left_cv_ptr = cv_bridge::toCvCopy(image0, sensor_msgs::image_encodings::BGR8);
