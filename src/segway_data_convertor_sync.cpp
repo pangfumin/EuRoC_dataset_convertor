@@ -72,40 +72,39 @@ void callback(const ImageConstPtr& image0, const ImageConstPtr& image1, const Po
         ss1 <<image1_syn_folder << "/" << image_name;
         cv::imwrite(ss1.str(), right_image_cv);
 
-//        pcl::PointCloud<pcl::PointXYZI>::Ptr lidar(new pcl::PointCloud<pcl::PointXYZI>);
-        pcl::PCLPointCloud2 pcl_pc2;
-        pcl_conversions::toPCL(*lidar.get(),pcl_pc2);
-        pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-        pcl::PointCloud<pcl::PointXYZI>::Ptr out_cloud(new pcl::PointCloud<pcl::PointXYZI>);
-        pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
-        for (auto pt: *temp_cloud) {
-            pcl::PointXYZI p;
-            p.x = pt.x;
-            p.y = pt.y;
-            p.z = pt.z;
-            out_cloud->push_back(p);
-        }
+////        pcl::PointCloud<pcl::PointXYZI>::Ptr lidar(new pcl::PointCloud<pcl::PointXYZI>);
+//        pcl::PCLPointCloud2 pcl_pc2;
+//        pcl_conversions::toPCL(*lidar.get(),pcl_pc2);
+//        pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+//        pcl::PointCloud<pcl::PointXYZI>::Ptr out_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+//        pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+//        for (auto pt: *temp_cloud) {
+//            pcl::PointXYZI p;
+//            p.x = pt.x;
+//            p.y = pt.y;
+//            p.z = pt.z;
+//            out_cloud->push_back(p);
+//        }
+//
+//        std::string lidar_name = std::string(6 - std::to_string(sensor_cnt).length(), '0') + std::to_string(sensor_cnt) + ".bin";
+//        std::stringstream ss_lidar;
+//        ss_lidar <<lidar_syn_folder << "/" << lidar_name;
 
-        std::string lidar_name = std::string(6 - std::to_string(sensor_cnt).length(), '0') + std::to_string(sensor_cnt) + ".bin";
-        std::stringstream ss_lidar;
-        ss_lidar <<lidar_syn_folder << "/" << lidar_name;
-
-        writePointCloudToBinFile(*out_cloud, ss_lidar.str());
+//        writePointCloudToBinFile(*out_cloud, ss_lidar.str());
 
 
         sensor_syn_ofs  << "image0_syn/"<< image_name << " "
                         << std::to_string(image0->header.stamp.toNSec()) << " "
                 << "image1_syn/"<< image_name << " "
                 << std::to_string(image1->header.stamp.toNSec()) << " "
-                << "velodyne_syn/"<< lidar_name << " "
-                << std::to_string(lidar->header.stamp.toNSec()) << " "
-                << dt0 << " " << dt1
+                << dt0
                 <<  std::endl;
 
         std::cout << image_name << " "
                 << image0->header.stamp.toNSec() << " "
                 << image1->header.stamp.toNSec() << " "
-                << lidar->header.stamp.toNSec() << std::endl;
+//                << lidar->header.stamp.toNSec()
+                << std::endl;
 
         sensor_cnt ++;
     }

@@ -154,8 +154,15 @@ int main(int argc, char **argv)
 
   std::string save_folder = bagpath + bagname;
   auto velodyne_folder = save_folder+ "/velodyne";
-  auto image_left_folder = save_folder+ "/image0";
-  auto image_right_folder = save_folder+ "/image1";
+  auto image_left_folder = save_folder+ "/image_L";
+  auto image_right_folder = save_folder+ "/image_R";
+  auto image_0_folder = save_folder+ "/image_0";
+  auto image_1_folder = save_folder+ "/image_1";
+  auto image_2_folder = save_folder+ "/image_2";
+  auto image_3_folder = save_folder+ "/image_3";
+
+
+
   if (!common::pathExists(save_folder)) {
       common::createPath(save_folder);
   }
@@ -170,13 +177,35 @@ int main(int argc, char **argv)
         common::createPath(image_right_folder);
     }
 
+    if (!common::pathExists(image_0_folder)) {
+        common::createPath(image_0_folder);
+    }
+    if (!common::pathExists(image_1_folder)) {
+        common::createPath(image_1_folder);
+    }
+
+    if (!common::pathExists(image_2_folder)) {
+        common::createPath(image_2_folder);
+    }
+    if (!common::pathExists(image_3_folder)) {
+        common::createPath(image_3_folder);
+    }
+
     std::string velodyne_list_file = save_folder+ "/velodyne.txt";
-    std::string left_image_list_file = save_folder+ "/image0.txt";
-    std::string right_image_list_file = save_folder+ "/image1.txt";
+    std::string left_image_list_file = save_folder+ "/image_L.txt";
+    std::string right_image_list_file = save_folder+ "/image_R.txt";
+    std::string image0_list_file = save_folder+ "/image0.txt";
+    std::string image1_list_file = save_folder+ "/image1.txt";
+    std::string image2_list_file = save_folder+ "/image2.txt";
+    std::string image3_list_file = save_folder+ "/image3.txt";
 
     std::ofstream velodyne_ofs(velodyne_list_file);
     std::ofstream left_image_ofs(left_image_list_file);
     std::ofstream right_image_ofs(right_image_list_file);
+    std::ofstream image0_ofs(image0_list_file);
+    std::ofstream image1_ofs(image1_list_file);
+    std::ofstream image2_ofs(image2_list_file);
+    std::ofstream image3_ofs(image3_list_file);
 
 
 
@@ -217,6 +246,25 @@ int main(int argc, char **argv)
   int camera_left = 0;
   int camera_right = 0;
 
+  int camera0 = 0;
+  int camera1 = 0;
+  int camera2 = 0;
+  int camera3 = 0;
+
+  uint64_t last_lidar_ts = 0;
+  uint64_t last_camera0_ts = 0;
+  uint64_t last_camera1_ts = 0;
+  uint64_t last_camera2_ts = 0;
+  uint64_t last_camera3_ts = 0;
+
+  std::vector<uint64_t> lidar_ts_vec;
+  std::vector<uint64_t> camera0_ts_vec;
+  std::vector<uint64_t> camera1_ts_vec;
+  std::vector<uint64_t> camera2_ts_vec;
+  std::vector<uint64_t> camera3_ts_vec;
+
+
+
   for (auto bagIt : view) {
     string topic = bagIt.getTopic();
 
@@ -224,6 +272,11 @@ int main(int argc, char **argv)
       // todo: save
         sensor_msgs::PointCloud2::ConstPtr pointcloud =
                 bagIt.instantiate<sensor_msgs::PointCloud2>();
+
+        if (last_lidar_ts >= bagIt.getTime().toNSec()) continue;
+        last_lidar_ts = bagIt.getTime().toNSec();
+        lidar_ts_vec.push_back(bagIt.getTime().toNSec());
+
         pcl::PointCloud<pcl::PointXYZI>::Ptr lidar(new pcl::PointCloud<pcl::PointXYZI>);
         pcl::PCLPointCloud2 pcl_pc2;
         pcl_conversions::toPCL(*pointcloud,pcl_pc2);
@@ -238,7 +291,7 @@ int main(int argc, char **argv)
             out_cloud->push_back(p);
         }
 
-        std::string lidar_name = std::string(6 - std::to_string(camera_left).length(), '0') + std::to_string(velodyne_points_cnt) + ".bin";
+        std::string lidar_name = std::string(6 - std::to_string(velodyne_points_cnt).length(), '0') + std::to_string(velodyne_points_cnt) + ".bin";
         std::stringstream ss;
         ss <<velodyne_folder << "/" << lidar_name;
 
@@ -246,12 +299,15 @@ int main(int argc, char **argv)
 
         writePointCloudToBinFile(*out_cloud, ss.str());
 
-      velodyne_points_cnt ++;
+        velodyne_points_cnt ++;
     }
 
     if (topic == "/stereo/cameraL" ) {
       sensor_msgs::Image::ConstPtr image =
               bagIt.instantiate<sensor_msgs::Image>();
+
+
+
 
       cv_bridge::CvImagePtr cv_ptr;
       cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
@@ -273,6 +329,8 @@ int main(int argc, char **argv)
       sensor_msgs::Image::ConstPtr image =
               bagIt.instantiate<sensor_msgs::Image>();
 
+
+
       cv_bridge::CvImagePtr cv_ptr;
       cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
       cv::Mat image_cv = cv_ptr->image;
@@ -290,13 +348,142 @@ int main(int argc, char **argv)
       camera_right ++;
     }
 
-    std::cout<< "saving: " << camera_right + camera_left + velodyne_points_cnt << "/"  << view_size << std::endl;
+
+      if (topic == "/camera/post1/compressed" ) {
+          sensor_msgs::CompressedImage::ConstPtr image =
+                  bagIt.instantiate<sensor_msgs::CompressedImage>();
+
+
+          if (last_camera0_ts >= bagIt.getTime().toNSec()) continue;
+          last_camera0_ts = bagIt.getTime().toNSec();
+          camera0_ts_vec.push_back(bagIt.getTime().toNSec());
+
+          cv_bridge::CvImagePtr cv_ptr;
+          cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+          cv::Mat image_cv = cv_ptr->image;
+//      cv::imshow("image left", image_cv);
+//      cv::waitKey(20);
+
+          std::string image_name =
+                  std::string(6 - std::to_string(camera0).length(), '0') + std::to_string(camera0) + ".png";
+          std::stringstream ss;
+          ss <<image_0_folder << "/" << image_name;
+          cv::imwrite(ss.str(), image_cv);
+
+          image0_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "image0/"<< image_name << std::endl;
+          camera0 ++;
+      }
+
+      if (topic == "/camera/post2/compressed" ) {
+          sensor_msgs::CompressedImage::ConstPtr image =
+                  bagIt.instantiate<sensor_msgs::CompressedImage>();
+
+          if (last_camera1_ts >= bagIt.getTime().toNSec()) continue;
+          last_camera1_ts = bagIt.getTime().toNSec();
+          camera1_ts_vec.push_back(bagIt.getTime().toNSec());
+
+          cv_bridge::CvImagePtr cv_ptr;
+          cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+          cv::Mat image_cv = cv_ptr->image;
+//      cv::imshow("image left", image_cv);
+//      cv::waitKey(20);
+
+          std::string image_name =
+                  std::string(6 - std::to_string(camera1).length(), '0') + std::to_string(camera1) + ".png";
+          std::stringstream ss;
+          ss <<image_1_folder << "/" << image_name;
+          cv::imwrite(ss.str(), image_cv);
+
+          image1_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "image1/"<< image_name << std::endl;
+          camera1 ++;
+      }
+
+      if (topic == "/camera/post3/compressed" ) {
+          sensor_msgs::CompressedImage::ConstPtr image =
+                  bagIt.instantiate<sensor_msgs::CompressedImage>();
+
+          if (last_camera2_ts >= bagIt.getTime().toNSec()) continue;
+          last_camera2_ts = bagIt.getTime().toNSec();
+          camera2_ts_vec.push_back(bagIt.getTime().toNSec());
+
+          cv_bridge::CvImagePtr cv_ptr;
+          cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+          cv::Mat image_cv = cv_ptr->image;
+//      cv::imshow("image left", image_cv);
+//      cv::waitKey(20);
+
+          std::string image_name = std::string(6 - std::to_string(camera2).length(), '0') + std::to_string(camera2) + ".png";
+          std::stringstream ss;
+          ss <<image_2_folder << "/" << image_name;
+          cv::imwrite(ss.str(), image_cv);
+
+          image2_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "image2/"<< image_name << std::endl;
+          camera2 ++;
+      }
+
+      if (topic == "/camera/post4/compressed" ) {
+          sensor_msgs::CompressedImage::ConstPtr image =
+                  bagIt.instantiate<sensor_msgs::CompressedImage>();
+
+          if (last_camera3_ts >= bagIt.getTime().toNSec()) continue;
+          last_camera3_ts = bagIt.getTime().toNSec();
+          camera3_ts_vec.push_back(bagIt.getTime().toNSec());
+
+          cv_bridge::CvImagePtr cv_ptr;
+          cv_ptr = cv_bridge::toCvCopy(image, sensor_msgs::image_encodings::BGR8);
+          cv::Mat image_cv = cv_ptr->image;
+//      cv::imshow("image left", image_cv);
+//      cv::waitKey(20);
+
+          std::string image_name = std::string(6 - std::to_string(camera3).length(), '0') + std::to_string(camera3) + ".png";
+          std::stringstream ss;
+          ss <<image_3_folder << "/" << image_name;
+          cv::imwrite(ss.str(), image_cv);
+
+          image3_ofs << std::to_string(bagIt.getTime().toNSec()) << " " << "image3/"<< image_name << std::endl;
+          camera3 ++;
+      }
+
+      int cnt  = camera_right + camera_left + velodyne_points_cnt +
+              camera0 + camera1 + camera2 + camera3;
+      if (cnt % 100 ==0)
+          std::cout<< "saving: " << cnt  << "/"  << view_size << std::endl;
 
   }
 
-    velodyne_ofs.close();
-    left_image_ofs.close();
-    right_image_ofs.close();
+
+
+  std::cout << "lidar: " << lidar_ts_vec.front() << " "
+            << lidar_ts_vec.back() << " "
+            << (lidar_ts_vec.back() - lidar_ts_vec.front())/ 1e9 << "m "
+            << lidar_ts_vec.size() << std::endl;
+
+    std::cout << "camera0: " << camera0_ts_vec.front() << " "
+              << camera0_ts_vec.back() << " "
+              << (camera0_ts_vec.back() - camera0_ts_vec.front())/ 1e9 << "m "
+              << camera0_ts_vec.size() << std::endl;
+
+    std::cout << "camera1: " << camera1_ts_vec.front() << " "
+              << camera1_ts_vec.back() << " "
+              << (camera1_ts_vec.back() - camera1_ts_vec.front())/ 1e9 << "m "
+              << camera1_ts_vec.size() << std::endl;
+
+    std::cout << "camera2: " << camera2_ts_vec.front() << " "
+              << camera2_ts_vec.back() << " "
+              << (camera2_ts_vec.back() - camera2_ts_vec.front())/ 1e9 << "m "
+              << camera2_ts_vec.size() << std::endl;
+
+    std::cout << "camera3: " << camera3_ts_vec.front() << " "
+              << camera3_ts_vec.back() << " "
+              << (camera3_ts_vec.back() - camera3_ts_vec.front())/ 1e9 << "m "
+              << camera3_ts_vec.size() << std::endl;
+
+
+
+
+  velodyne_ofs.close();
+  left_image_ofs.close();
+  right_image_ofs.close();
 
 
 
