@@ -53,7 +53,7 @@ void callback(const ImageConstPtr& image0, const ImageConstPtr& image1, const Po
 //    std::cout << dt0 << " " << dt1 << std::endl;
 
     // in 5 ms, save it
-    if (abs(dt0) < 5 * 1e6) {
+    if (abs(dt0) < 5 * 1e6 && dt1 < 30) {
 
         cv_bridge::CvImagePtr left_cv_ptr;
         left_cv_ptr = cv_bridge::toCvCopy(image0, sensor_msgs::image_encodings::BGR8);
@@ -73,31 +73,33 @@ void callback(const ImageConstPtr& image0, const ImageConstPtr& image1, const Po
         cv::imwrite(ss1.str(), right_image_cv);
 
 ////        pcl::PointCloud<pcl::PointXYZI>::Ptr lidar(new pcl::PointCloud<pcl::PointXYZI>);
-//        pcl::PCLPointCloud2 pcl_pc2;
-//        pcl_conversions::toPCL(*lidar.get(),pcl_pc2);
-//        pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-//        pcl::PointCloud<pcl::PointXYZI>::Ptr out_cloud(new pcl::PointCloud<pcl::PointXYZI>);
-//        pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
-//        for (auto pt: *temp_cloud) {
-//            pcl::PointXYZI p;
-//            p.x = pt.x;
-//            p.y = pt.y;
-//            p.z = pt.z;
-//            out_cloud->push_back(p);
-//        }
-//
-//        std::string lidar_name = std::string(6 - std::to_string(sensor_cnt).length(), '0') + std::to_string(sensor_cnt) + ".bin";
-//        std::stringstream ss_lidar;
-//        ss_lidar <<lidar_syn_folder << "/" << lidar_name;
+        pcl::PCLPointCloud2 pcl_pc2;
+        pcl_conversions::toPCL(*lidar.get(),pcl_pc2);
+        pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        pcl::PointCloud<pcl::PointXYZI>::Ptr out_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+        pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+        for (auto pt: *temp_cloud) {
+            pcl::PointXYZI p;
+            p.x = pt.x;
+            p.y = pt.y;
+            p.z = pt.z;
+            out_cloud->push_back(p);
+        }
 
-//        writePointCloudToBinFile(*out_cloud, ss_lidar.str());
+        std::string lidar_name = std::string(6 - std::to_string(sensor_cnt).length(), '0') + std::to_string(sensor_cnt) + ".bin";
+        std::stringstream ss_lidar;
+        ss_lidar <<lidar_syn_folder << "/" << lidar_name;
+
+        writePointCloudToBinFile(*out_cloud, ss_lidar.str());
 
 
         sensor_syn_ofs  << "image0_syn/"<< image_name << " "
                         << std::to_string(image0->header.stamp.toNSec()) << " "
                 << "image1_syn/"<< image_name << " "
                 << std::to_string(image1->header.stamp.toNSec()) << " "
-                << dt0
+                << "velodyne_syn/"<< lidar_name << " "
+                << std::to_string(lidar->header.stamp.toNSec()) << " "
+                << dt0 << " " << dt1
                 <<  std::endl;
 
         std::cout << image_name << " "
