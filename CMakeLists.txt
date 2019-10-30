@@ -51,6 +51,12 @@ add_definitions(-fPIC -march=native -Wextra -Winit-self -Woverloaded-virtual
 add_executable(segway_data_convertor src/segway_data_convertor.cpp src/file-system-tools.cpp)
 target_link_libraries(segway_data_convertor ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+add_executable(segway_data_convertor_doublesphere src/segway_data_convertor_doublesphere.cpp src/file-system-tools.cpp)
+target_link_libraries(segway_data_convertor_doublesphere ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(bag_to_images src/bag_to_images.cpp src/file-system-tools.cpp)
+target_link_libraries(bag_to_images ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 
 add_executable(MultiVechileStereo_data_convertor src/MultiVechileStereo_data_convertor.cpp src/file-system-tools.cpp)
 target_link_libraries(MultiVechileStereo_data_convertor ${Boost_LIBRARIES}  pthread ${catkin_LIBRARIES} ${PCL_LIBRARIES})
